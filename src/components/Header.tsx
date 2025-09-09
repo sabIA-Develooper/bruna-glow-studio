@@ -1,9 +1,17 @@
 import { useState } from "react";
-import { Menu, X, Calendar, ShoppingCart, User } from "lucide-react";
+import { Menu, X, Calendar, ShoppingCart, User, LogOut, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
+import { useNavigate } from "react-router-dom";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, signOut, isAdmin } = useAuth();
+  const { itemCount } = useCart();
+  const navigate = useNavigate();
 
   return (
     <header className="bg-warm-white/95 backdrop-blur-sm border-b border-nude-light sticky top-0 z-50">
@@ -38,17 +46,65 @@ const Header = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="outline" size="sm" className="border-bronze text-bronze hover:bg-bronze hover:text-primary-foreground">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="border-bronze text-bronze hover:bg-bronze hover:text-primary-foreground"
+              onClick={() => navigate('/auth')}
+            >
               <Calendar className="w-4 h-4 mr-2" />
               Agendar
             </Button>
-            <Button size="sm" className="bg-gradient-to-r from-bronze to-bronze-light hover:shadow-warm">
+            <Button 
+              size="sm" 
+              className="bg-gradient-to-r from-bronze to-bronze-light hover:shadow-warm relative"
+              onClick={() => navigate('/cart')}
+            >
               <ShoppingCart className="w-4 h-4 mr-2" />
               Carrinho
+              {itemCount > 0 && (
+                <Badge 
+                  className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 min-w-[1.25rem] h-5"
+                >
+                  {itemCount}
+                </Badge>
+              )}
             </Button>
-            <Button variant="ghost" size="sm" className="text-bronze hover:text-bronze-light">
-              <User className="w-4 h-4" />
-            </Button>
+            
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-bronze hover:text-bronze-light">
+                    <User className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem className="text-bronze">
+                    {user.email}
+                  </DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem onClick={() => navigate('/admin')}>
+                      <Settings className="w-4 h-4 mr-2" />
+                      Admin
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={signOut}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-bronze hover:text-bronze-light"
+                onClick={() => navigate('/auth')}
+              >
+                <User className="w-4 h-4 mr-2" />
+                Entrar
+              </Button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -77,14 +133,51 @@ const Header = () => {
                 Sobre
               </a>
               <div className="flex flex-col space-y-2 pt-4 border-t border-nude-light">
-                <Button variant="outline" size="sm" className="border-bronze text-bronze hover:bg-bronze hover:text-primary-foreground">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="border-bronze text-bronze hover:bg-bronze hover:text-primary-foreground"
+                  onClick={() => navigate('/auth')}
+                >
                   <Calendar className="w-4 h-4 mr-2" />
                   Agendar
                 </Button>
-                <Button size="sm" className="bg-gradient-to-r from-bronze to-bronze-light">
+                <Button 
+                  size="sm" 
+                  className="bg-gradient-to-r from-bronze to-bronze-light relative"
+                  onClick={() => navigate('/cart')}
+                >
                   <ShoppingCart className="w-4 h-4 mr-2" />
                   Carrinho
+                  {itemCount > 0 && (
+                    <Badge 
+                      className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 min-w-[1.25rem] h-5"
+                    >
+                      {itemCount}
+                    </Badge>
+                  )}
                 </Button>
+                {user ? (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="border-bronze text-bronze"
+                    onClick={signOut}
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sair
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="border-bronze text-bronze"
+                    onClick={() => navigate('/auth')}
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    Entrar
+                  </Button>
+                )}
               </div>
             </nav>
           </div>
