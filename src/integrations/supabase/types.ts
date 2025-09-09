@@ -14,7 +14,245 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      appointments: {
+        Row: {
+          appointment_date: string
+          client_email: string
+          client_name: string
+          client_phone: string
+          created_at: string
+          id: string
+          notes: string | null
+          service_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          appointment_date: string
+          client_email: string
+          client_name: string
+          client_phone: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          service_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          appointment_date?: string
+          client_email?: string
+          client_name?: string
+          client_phone?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          service_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      courses: {
+        Row: {
+          category: string
+          content_url: string | null
+          created_at: string
+          description: string | null
+          duration: string | null
+          id: string
+          image_url: string | null
+          instructor: string | null
+          is_active: boolean
+          level: string | null
+          price: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          content_url?: string | null
+          created_at?: string
+          description?: string | null
+          duration?: string | null
+          id?: string
+          image_url?: string | null
+          instructor?: string | null
+          is_active?: boolean
+          level?: string | null
+          price: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content_url?: string | null
+          created_at?: string
+          description?: string | null
+          duration?: string | null
+          id?: string
+          image_url?: string | null
+          instructor?: string | null
+          is_active?: boolean
+          level?: string | null
+          price?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      order_items: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          order_id: string
+          price: number
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          order_id: string
+          price: number
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          order_id?: string
+          price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string
+          id: string
+          payment_method: string | null
+          status: string
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          payment_method?: string | null
+          status?: string
+          total_amount: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          payment_method?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          is_admin: boolean
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          is_admin?: boolean
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          is_admin?: boolean
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration: number
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          price: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
