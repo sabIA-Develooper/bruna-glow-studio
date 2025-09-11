@@ -18,7 +18,7 @@ const Footer = () => {
             </div>
             <p className="text-sm opacity-80 leading-relaxed">
               Transformando a beleza através de técnicas profissionais e 
-              ensinamentos de qualidade há mais de 5 anos.
+              ensinamentos de qualidade há mais de 8 anos.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="hover:scale-110 transition-transform">
@@ -62,7 +62,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="w-4 h-4" />
-                <span>contato@studiobruna.com</span>
+                <span></span>
               </div>
               <div className="flex items-start space-x-2">
                 <MapPin className="w-4 h-4 mt-0.5" />
