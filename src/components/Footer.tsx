@@ -60,10 +60,12 @@ const Footer = () => {
                 <Phone className="w-4 h-4" />
                 <span>(79) 99818-6347</span>
               </div>
+              {/* 
               <div className="flex items-center space-x-2">
                 <Mail className="w-4 h-4" />
                 <span></span>
               </div>
+              */}
               <div className="flex items-start space-x-2">
                 <MapPin className="w-4 h-4 mt-0.5" />
                 <span>Lagarto - SE<br />Tv. Pedro José Dos Santos, 38 - Alto da Boa Vista</span>

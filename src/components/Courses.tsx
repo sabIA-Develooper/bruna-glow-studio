@@ -1,300 +1,319 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Play, 
-  FileText, 
-  Headphones, 
-  Star, 
-  Clock, 
-  Users, 
+import {
+  Play,
+  FileText,
+  Headphones,
+  Star,
+  Clock,
+  Users,
   ShoppingCart,
   Eye,
-  BookOpen
+  BookOpen,
 } from "lucide-react";
 
+type Course = {
+  id: number;
+  title: string;
+  description: string;
+  price: number;
+  originalPrice?: number;
+  rating: number;
+  students: number;
+  duration: string;
+  lessons: number;
+  level: "Iniciante" | "Intermediário" | "Avançado";
+  image?: string;
+  features: string[];
+  preview?: {
+    type: "video" | "texto";
+    url?: string;       // YouTube/Vimeo embed URL
+    sampleText?: string;
+  };
+};
+
+// ID do vídeo: Xxl15httm5s
+const YT_EMBED = "https://www.youtube.com/embed/Xxl15httm5s?rel=0&modestbranding=1";
+
+const COURSES: Course[] = [
+  {
+    id: 1,
+    title: "Pele Perfeita: do Skin Prep ao Glow",
+    description:
+      "Domine a preparação de pele e acabamento profissional para qualquer ocasião.",
+    price: 97,
+    originalPrice: 197,
+    rating: 4.9,
+    students: 1240,
+    duration: "3h 40min",
+    lessons: 16,
+    level: "Intermediário",
+    image: "/course-skin.jpg",
+    features: ["Skin prep completo", "Texturas e camadas", "Fixação e glow"],
+    preview: { type: "video", url: YT_EMBED },
+  },
+  {
+    id: 2,
+    title: "Contorno & Iluminação 360°",
+    description:
+      "Técnicas atualizadas de contorno e iluminação para diferentes formatos de rosto.",
+    price: 147,
+    originalPrice: 247,
+    rating: 5.0,
+    students: 856,
+    duration: "5h 15min",
+    lessons: 18,
+    level: "Avançado",
+    image: "/course-contouring.jpg",
+    features: ["Mapeamento facial", "Produtos cremosos x pó", "Blend perfeito"],
+    preview: { type: "video", url: YT_EMBED },
+  },
+  {
+    id: 3,
+    title: "Noivas: Guia Completo",
+    description:
+      "Processo do briefing ao grande dia, com testes, durabilidade e fotografia.",
+    price: 197,
+    originalPrice: 297,
+    rating: 4.8,
+    students: 640,
+    duration: "6h 10min",
+    lessons: 22,
+    level: "Avançado",
+    image: "/course-bride.jpg",
+    features: ["Teste de maquiagem", "Kit pro dia D", "Checklist fotográfico"],
+    preview: { type: "video", url: YT_EMBED },
+  },
+];
+
+function PreviewModal({
+  open,
+  onClose,
+  course,
+  onEnroll,
+}: {
+  open: boolean;
+  onClose: () => void;
+  course: Course | null;
+  onEnroll: () => void;
+}) {
+  if (!open || !course) return null;
+
+  const handleBackdrop = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) onClose();
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      onClick={handleBackdrop}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div className="w-full max-w-2xl rounded-2xl bg-card text-card-foreground border border-nude-light shadow-xl overflow-hidden">
+        <div className="p-6 border-b border-nude-light">
+          <h3 className="text-2xl font-bold text-bronze">{course.title}</h3>
+          <p className="text-sm text-bronze-light mt-1">{course.description}</p>
+        </div>
+
+        <div className="p-6 space-y-4">
+          {/* Player */}
+          <div className="aspect-video w-full rounded-xl overflow-hidden border border-nude-light">
+            {course.preview?.type === "video" && course.preview.url ? (
+              <iframe
+                src={course.preview.url}
+                title={`Prévia — ${course.title}`}
+                className="w-full h-full"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                referrerPolicy="strict-origin-when-cross-origin"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-nude to-nude-light flex items-center justify-center">
+                <div className="flex flex-col items-center text-center">
+                  <Play className="w-10 h-10 mb-2" />
+                  <span className="text-sm text-bronze-light">Prévia indisponível</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-3 gap-4 text-sm">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              <span>{course.duration}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4" />
+              <span>{course.lessons} aulas</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              <span>{course.students.toLocaleString()} alunas</span>
+            </div>
+          </div>
+
+          <ul className="grid sm:grid-cols-2 gap-2 mt-2">
+            {course.features.map((f, i) => (
+              <li key={i} className="flex items-center gap-2 text-sm text-bronze">
+                <div className="w-2 h-2 rounded-full bg-bronze" />
+                {f}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="p-6 border-t border-nude-light flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl font-bold text-bronze">R$ {course.price}</span>
+            {course.originalPrice && (
+              <span className="text-sm line-through text-bronze-light">
+                R$ {course.originalPrice}
+              </span>
+            )}
+            <Badge className="bg-nude text-bronze border border-nude-light">
+              {course.level}
+            </Badge>
+          </div>
+
+          <div className="flex gap-3">
+            <Button variant="outline" className="border-bronze" onClick={onClose}>
+              Fechar
+            </Button>
+            <Button
+              className="bg-gradient-to-r from-bronze to-bronze-light"
+              onClick={onEnroll}
+            >
+              <ShoppingCart className="w-4 h-4 mr-2" />
+              Matricular-se (teste)
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const Courses = () => {
-  const [cart, setCart] = useState<number[]>([]);
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [current, setCurrent] = useState<Course | null>(null);
 
-  const courses = [
-    {
-      id: 1,
-      title: "Maquiagem Básica - Do Zero ao Profissional",
-      description: "Aprenda técnicas fundamentais de maquiagem desde o básico até técnicas avançadas.",
-      price: 197,
-      originalPrice: 297,
-      rating: 4.9,
-      students: 1234,
-      duration: "8h 30min",
-      lessons: 24,
-      type: "video",
-      level: "Iniciante",
-      image: "/course-basic.jpg",
-      features: ["Certificado incluso", "Acesso vitalício", "Suporte direto", "Material complementar"]
-    },
-    {
-      id: 2,
-      title: "Técnicas Avançadas de Contouring",
-      description: "Domine as técnicas mais avançadas de contorno e iluminação facial.",
-      price: 147,
-      originalPrice: 247,
-      rating: 5.0,
-      students: 856,
-      duration: "5h 15min",
-      lessons: 18,
-      type: "video",
-      level: "Avançado",
-      image: "/course-contouring.jpg",
-      features: ["Técnicas exclusivas", "Casos práticos", "Templates inclusos"]
-    },
-    {
-      id: 3,
-      title: "Maquiagem de Noivas - Guia Completo",
-      description: "Especialização completa em maquiagem de noivas, do atendimento à execução.",
-      price: 397,
-      originalPrice: 597,
-      rating: 4.8,
-      students: 542,
-      duration: "12h 45min",
-      lessons: 35,
-      type: "video",
-      level: "Intermediário",
-      image: "/course-bride.jpg",
-      features: ["Precificação", "Atendimento ao cliente", "Portfólio profissional"]
-    },
-    {
-      id: 4,
-      title: "Skin Care Profissional - E-book",
-      description: "Guia completo sobre cuidados com a pele e preparação para maquiagem.",
-      price: 47,
-      originalPrice: 97,
-      rating: 4.7,
-      students: 2341,
-      duration: "2h leitura",
-      lessons: 12,
-      type: "pdf",
-      level: "Básico",
-      image: "/course-skincare.jpg",
-      features: ["120 páginas", "Receitas naturais", "Checklist completo"]
-    },
-    {
-      id: 5,
-      title: "Podcast: Empreendedorismo na Beleza",
-      description: "Série de áudios sobre como construir um negócio de sucesso na área da beleza.",
-      price: 67,
-      originalPrice: 127,
-      rating: 4.6,
-      students: 890,
-      duration: "6h 20min",
-      lessons: 15,
-      type: "audio",
-      level: "Todos os níveis",
-      image: "/course-podcast.jpg",
-      features: ["15 episódios", "Entrevistas exclusivas", "Planos de negócio"]
-    },
-    {
-      id: 6,
-      title: "Maquiagem Artística e Editorial",
-      description: "Desenvolva criatividade e técnicas para maquiagens artísticas e editoriais.",
-      price: 247,
-      originalPrice: 397,
-      rating: 4.9,
-      students: 445,
-      duration: "9h 10min",
-      lessons: 28,
-      type: "video",
-      level: "Avançado",
-      image: "/course-artistic.jpg",
-      features: ["Projetos práticos", "Inspirações", "Tendências atuais"]
-    }
-  ];
-
-  const addToCart = (courseId: number) => {
-    setCart(prev => [...prev, courseId]);
+  const handlePreview = (course: Course) => {
+    setCurrent(course);
+    setOpen(true);
   };
 
-  const removeFromCart = (courseId: number) => {
-    setCart(prev => prev.filter(id => id !== courseId));
-  };
-
-  const isInCart = (courseId: number) => cart.includes(courseId);
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'video':
-        return <Play className="w-4 h-4" />;
-      case 'pdf':
-        return <FileText className="w-4 h-4" />;
-      case 'audio':
-        return <Headphones className="w-4 h-4" />;
-      default:
-        return <BookOpen className="w-4 h-4" />;
-    }
-  };
-
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'video':
-        return 'Vídeo Aulas';
-      case 'pdf':
-        return 'E-book PDF';
-      case 'audio':
-        return 'Áudiobook';
-      default:
-        return 'Curso';
-    }
+  const handleEnroll = () => {
+    setOpen(false);
+    navigate("/auth");
   };
 
   return (
     <section id="courses" className="py-20 bg-gradient-to-b from-warm-white to-cream">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center space-x-2 bg-bronze/10 rounded-full px-4 py-2 mb-4">
-            <BookOpen className="w-4 h-4 text-bronze" />
-            <span className="text-bronze text-sm font-medium">Academia de Beleza</span>
+        <div className="text-center mb-14">
+          <div className="inline-flex items-center gap-2 bg-nude/30 rounded-full px-4 py-2 mb-4">
+            <FileText className="w-4 h-4 text-bronze" />
+            <span className="text-sm text-bronze font-medium">Cursos</span>
           </div>
-          <h2 className="text-4xl lg:text-5xl font-bold text-bronze mb-4">
-            Cursos Profissionais
+          <h2 className="text-4xl lg:text-5xl font-bold text-bronze mb-3">
+            Aprenda com a Bruna
           </h2>
-          <p className="text-lg text-bronze-light max-w-2xl mx-auto mb-8">
-            Aprenda com uma das melhores profissionais da área através de cursos 
-            completos em vídeo, e-books e audiobooks.
+          <p className="text-lg text-bronze-light max-w-2xl mx-auto">
+            Domine técnicas profissionais com conteúdo direto ao ponto e foco em
+            resultado real nas clientes.
           </p>
-          
-          {cart.length > 0 && (
-            <div className="inline-flex items-center space-x-2 bg-bronze text-primary-foreground rounded-full px-6 py-3 shadow-warm">
-              <ShoppingCart className="w-5 h-5" />
-              <span className="font-medium">{cart.length} itens no carrinho</span>
-              <Button size="sm" variant="secondary" className="ml-2">
-                Finalizar Compra
-              </Button>
-            </div>
-          )}
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {courses.map((course) => (
-            <Card key={course.id} className="group hover:shadow-warm transition-all duration-300 border-nude-light overflow-hidden">
+          {COURSES.map((course) => (
+            <Card
+              key={course.id}
+              className="group border-nude-light overflow-hidden hover:shadow-warm transition-all duration-300"
+            >
               <div className="aspect-video bg-gradient-to-br from-nude to-nude-light relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-t from-bronze/30 to-transparent"></div>
-                
-                {/* Type Badge */}
-                <div className="absolute top-4 left-4 flex items-center space-x-1 bg-card rounded-full px-3 py-1">
-                  {getTypeIcon(course.type)}
-                  <span className="text-xs font-medium text-bronze">{getTypeLabel(course.type)}</span>
-                </div>
-
-                {/* Discount Badge */}
-                <div className="absolute top-4 right-4 bg-bronze text-primary-foreground rounded-full px-3 py-1">
-                  <span className="text-xs font-bold">
-                    -{Math.round((1 - course.price / course.originalPrice) * 100)}%
+                <div className="absolute top-3 right-3 bg-card rounded-full px-3 py-1 border border-nude-light">
+                  <span className="text-sm font-semibold text-bronze">
+                    R$ {course.price}
                   </span>
                 </div>
+              </div>
 
-                {/* Level Badge */}
-                <div className="absolute bottom-4 left-4">
-                  <Badge variant="secondary" className="bg-card/90 text-bronze">
+              <div className="p-6 space-y-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="text-xl font-bold text-bronze">{course.title}</h3>
+                    <p className="text-sm text-bronze-light mt-1">
+                      {course.description}
+                    </p>
+                  </div>
+                  <Badge className="bg-nude text-bronze border border-nude-light">
                     {course.level}
                   </Badge>
                 </div>
-              </div>
-              
-              <div className="p-6">
-                <div className="mb-4">
-                  <h3 className="text-lg font-bold text-bronze mb-2 line-clamp-2">{course.title}</h3>
-                  <p className="text-bronze-light text-sm leading-relaxed line-clamp-2">{course.description}</p>
-                </div>
 
-                {/* Rating and Stats */}
-                <div className="flex items-center justify-between text-sm text-bronze-light mb-4">
-                  <div className="flex items-center space-x-2">
-                    <div className="flex items-center space-x-1">
-                      <Star className="w-4 h-4 fill-current text-bronze" />
-                      <span className="font-medium">{course.rating}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Users className="w-4 h-4" />
-                      <span>{course.students}</span>
-                    </div>
+                <div className="flex items-center gap-4 text-sm text-bronze-light">
+                  <div className="flex items-center gap-1">
+                    <Star className="w-4 h-4" />
+                    <span>{course.rating.toFixed(1)}</span>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-1">
+                    <Users className="w-4 h-4" />
+                    <span>{course.students.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
                     <Clock className="w-4 h-4" />
                     <span>{course.duration}</span>
                   </div>
+                  <div className="flex items-center gap-1">
+                    <BookOpen className="w-4 h-4" />
+                    <span>{course.lessons} aulas</span>
+                  </div>
                 </div>
 
-                {/* Features */}
-                <div className="space-y-1 mb-6">
-                  {course.features.slice(0, 2).map((feature, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <div className="w-1.5 h-1.5 bg-bronze rounded-full"></div>
-                      <span className="text-xs text-bronze-light">{feature}</span>
-                    </div>
+                <ul className="space-y-2">
+                  {course.features.map((f, i) => (
+                    <li key={i} className="flex items-center gap-2 text-sm text-bronze">
+                      <div className="w-2 h-2 rounded-full bg-bronze" />
+                      {f}
+                    </li>
                   ))}
-                </div>
+                </ul>
 
-                {/* Price */}
-                <div className="flex items-center space-x-2 mb-4">
-                  <span className="text-2xl font-bold text-bronze">R$ {course.price}</span>
-                  <span className="text-sm text-bronze-light line-through">R$ {course.originalPrice}</span>
-                </div>
-
-                {/* Actions */}
-                <div className="space-y-2">
-                  {isInCart(course.id) ? (
-                    <Button 
-                      variant="outline" 
-                      className="w-full border-bronze text-bronze hover:bg-bronze hover:text-primary-foreground"
-                      onClick={() => removeFromCart(course.id)}
-                    >
-                      <ShoppingCart className="w-4 h-4 mr-2" />
-                      Remover do Carrinho
-                    </Button>
-                  ) : (
-                    <Button 
-                      className="w-full bg-gradient-to-r from-bronze to-bronze-light hover:shadow-warm group-hover:scale-105 transition-all duration-300"
-                      onClick={() => addToCart(course.id)}
-                    >
-                      <ShoppingCart className="w-4 h-4 mr-2" />
-                      Adicionar ao Carrinho
-                    </Button>
-                  )}
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="w-full text-bronze hover:text-bronze-light"
+                <div className="flex gap-3 pt-2">
+                  <Button
+                    variant="outline"
+                    className="border-bronze text-bronze hover:bg-bronze hover:text-primary-foreground"
+                    onClick={() => handlePreview(course)}
                   >
                     <Eye className="w-4 h-4 mr-2" />
                     Ver Prévia
+                  </Button>
+                  <Button
+                    className="bg-gradient-to-r from-bronze to-bronze-light flex-1"
+                    onClick={handleEnroll}
+                  >
+                    <ShoppingCart className="w-4 h-4 mr-2" />
+                    Matricular-se
                   </Button>
                 </div>
               </div>
             </Card>
           ))}
         </div>
-
-        <div className="text-center mt-12">
-          <p className="text-bronze-light mb-4">
-            Oferecemos garantia de 30 dias em todos os nossos cursos
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <div className="flex items-center space-x-2 text-sm text-bronze-light">
-              <div className="w-2 h-2 bg-bronze rounded-full"></div>
-              <span>Certificado de conclusão</span>
-            </div>
-            <div className="flex items-center space-x-2 text-sm text-bronze-light">
-              <div className="w-2 h-2 bg-bronze rounded-full"></div>
-              <span>Suporte direto com a instrutora</span>
-            </div>
-            <div className="flex items-center space-x-2 text-sm text-bronze-light">
-              <div className="w-2 h-2 bg-bronze rounded-full"></div>
-              <span>Acesso vitalício</span>
-            </div>
-          </div>
-        </div>
       </div>
+
+      <PreviewModal
+        open={open}
+        onClose={() => setOpen(false)}
+        course={current}
+        onEnroll={handleEnroll}
+      />
     </section>
   );
 };

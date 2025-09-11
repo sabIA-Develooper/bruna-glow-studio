@@ -1,8 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { Calendar, Play, Star } from "lucide-react";
 import heroImage from "@/assets/hero-studio.jpg";
+import { useNavigate } from "react-router-dom";
 
 const Hero = () => {
+  const navigate = useNavigate();
+
+  const goToCourses = () => {
+    const el = document.getElementById("courses");
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+    else window.location.hash = "#courses";
+  };
+
   return (
     <section id="home" className="relative min-h-screen flex items-center bg-gradient-to-br from-warm-white to-cream">
       <div className="container mx-auto px-4 py-20">
@@ -33,17 +42,20 @@ const Hero = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 className="bg-gradient-to-r from-bronze to-bronze-light hover:shadow-warm transform hover:scale-105 transition-all duration-300"
+                onClick={() => navigate("/auth")}
               >
                 <Calendar className="w-5 h-5 mr-2" />
                 Agendar Serviço
               </Button>
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 size="lg"
                 className="border-bronze text-bronze hover:bg-bronze hover:text-primary-foreground group"
+                onClick={goToCourses}
               >
                 <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
                 Ver Cursos
@@ -70,14 +82,10 @@ const Hero = () => {
           {/* Image */}
           <div className="relative">
             <div className="relative overflow-hidden rounded-3xl shadow-warm">
-              <img 
-                src={heroImage} 
-                alt="Studio Bruna Makeup" 
-                className="w-full h-[600px] object-cover"
-              />
+              <img src={heroImage} alt="Studio Bruna Makeup" className="w-full h-[600px] object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-bronze/20 to-transparent"></div>
             </div>
-            
+
             {/* Floating Cards */}
             <div className="absolute -top-6 -right-6 bg-card p-4 rounded-2xl shadow-soft border border-nude-light">
               <div className="flex items-center space-x-2">
@@ -85,7 +93,7 @@ const Hero = () => {
                 <span className="text-sm font-medium text-bronze">Agendamento Online</span>
               </div>
             </div>
-            
+
             <div className="absolute -bottom-6 -left-6 bg-card p-4 rounded-2xl shadow-soft border border-nude-light">
               <div className="text-center">
                 <div className="text-2xl font-bold text-bronze">4.9</div>

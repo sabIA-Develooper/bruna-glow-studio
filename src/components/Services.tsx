@@ -1,45 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Calendar, Clock, MapPin, Sparkles } from "lucide-react";
+import { Calendar, Clock, MapPin, Sparkles, MessageCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+const WHATSAPP_NUMBER = "5579998186347"; // do rodapé
+const DEFAULT_MSG = "Olá! Vim pelo site e gostaria de agendar um horário 🙂";
+const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(DEFAULT_MSG)}`;
 
 const Services = () => {
+  const navigate = useNavigate();
+
   const services = [
-    {
-      id: 1,
-      name: "Maquiagem Social",
-      description: "Maquiagem perfeita para eventos sociais, formaturas e ocasiões especiais.",
-      price: "R$ 120",
-      duration: "1h 30min",
-      image: "makeup-social",
-      features: ["Limpeza de pele", "Base impecável", "Finalização profissional"]
-    },
-    {
-      id: 2,
-      name: "Maquiagem de Noiva",
-      description: "O dia mais importante merece uma maquiagem inesquecível.",
-      price: "R$ 250",
-      duration: "2h 30min",
-      image: "makeup-bride",
-      features: ["Teste de maquiagem", "Maquiagem duradoura", "Retoque incluso"]
-    },
-    {
-      id: 3,
-      name: "Skin Care Profissional",
-      description: "Tratamento completo para deixar sua pele radiante e saudável.",
-      price: "R$ 80",
-      duration: "1h",
-      image: "skincare",
-      features: ["Limpeza profunda", "Hidratação", "Proteção UV"]
-    },
-    {
-      id: 4,
-      name: "Maquiagem Artística",
-      description: "Criações únicas e personalizadas para ensaios fotográficos.",
-      price: "R$ 180",
-      duration: "2h",
-      image: "makeup-artistic",
-      features: ["Conceito personalizado", "Produtos premium", "Acabamento profissional"]
-    }
+    { id: 1, name: "Maquiagem Social", description: "Maquiagem perfeita para eventos sociais, formaturas e ocasiões especiais.", price: "R$ 120", duration: "1h 30min", image: "makeup-social", features: ["Limpeza de pele", "Base impecável", "Finalização profissional"] },
+    { id: 2, name: "Maquiagem de Noiva", description: "O dia mais importante merece uma maquiagem inesquecível.", price: "R$ 250", duration: "2h 30min", image: "makeup-bride", features: ["Teste de maquiagem", "Maquiagem duradoura", "Retoque incluso"] },
+    { id: 3, name: "Skin Care Profissional", description: "Tratamento completo para deixar sua pele radiante e saudável.", price: "R$ 80", duration: "1h", image: "skincare", features: ["Limpeza profunda", "Hidratação", "Proteção UV"] },
+    { id: 4, name: "Maquiagem Artística", description: "Criações únicas e personalizadas para ensaios fotográficos.", price: "R$ 180", duration: "2h", image: "makeup-artistic", features: ["Conceito personalizado", "Produtos premium", "Acabamento profissional"] }
   ];
 
   return (
@@ -50,9 +25,7 @@ const Services = () => {
             <Sparkles className="w-4 h-4 text-bronze" />
             <span className="text-bronze text-sm font-medium">Nossos Serviços</span>
           </div>
-          <h2 className="text-4xl lg:text-5xl font-bold text-bronze mb-4">
-            Transforme Sua Beleza
-          </h2>
+          <h2 className="text-4xl lg:text-5xl font-bold text-bronze mb-4">Transforme Sua Beleza</h2>
           <p className="text-lg text-bronze-light max-w-2xl mx-auto">
             Oferecemos serviços profissionais de maquiagem e skin care com técnicas 
             avançadas e produtos de alta qualidade.
@@ -68,7 +41,7 @@ const Services = () => {
                   <span className="text-sm font-bold text-bronze">{service.price}</span>
                 </div>
               </div>
-              
+
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div>
@@ -97,8 +70,9 @@ const Services = () => {
                   ))}
                 </div>
 
-                <Button 
+                <Button
                   className="w-full bg-gradient-to-r from-bronze to-bronze-light hover:shadow-warm group-hover:scale-105 transition-all duration-300"
+                  onClick={() => navigate("/auth")}
                 >
                   <Calendar className="w-4 h-4 mr-2" />
                   Agendar Agora
@@ -112,7 +86,12 @@ const Services = () => {
           <p className="text-bronze-light mb-4">
             Não encontrou o que procura? Entre em contato conosco!
           </p>
-          <Button variant="outline" className="border-bronze text-bronze hover:bg-bronze hover:text-primary-foreground">
+          <Button
+            variant="outline"
+            className="border-bronze text-bronze hover:bg-bronze hover:text-primary-foreground"
+            onClick={() => window.open(WHATSAPP_URL, "_blank")}
+          >
+            <MessageCircle className="w-4 h-4 mr-2" />
             Falar no WhatsApp
           </Button>
         </div>

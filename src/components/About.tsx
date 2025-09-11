@@ -5,7 +5,7 @@ const About = () => {
   const achievements = [
     {
       icon: <Users className="w-8 h-8" />,
-      number: "500+",
+      number: "1000+",
       label: "Clientes Satisfeitas",
       description: "Clientes atendidas com excelência"
     },
@@ -68,7 +68,7 @@ const About = () => {
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-bronze rounded-full"></div>
-                  <span className="text-bronze-light">Curso Profissional de Maquiagem - SENAC</span>
+                  <span className="text-bronze-light">Curso Profissional de Maquiagem</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-bronze rounded-full"></div>
