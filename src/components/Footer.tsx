@@ -58,7 +58,7 @@ const Footer = () => {
             <div className="space-y-3 text-sm opacity-80">
               <div className="flex items-center space-x-2">
                 <Phone className="w-4 h-4" />
-                <span>(11) 99999-9999</span>
+                <span>(79) 99818-6347</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="w-4 h-4" />
@@ -66,7 +66,7 @@ const Footer = () => {
               </div>
               <div className="flex items-start space-x-2">
                 <MapPin className="w-4 h-4 mt-0.5" />
-                <span>São Paulo, SP<br />Centro da cidade</span>
+                <span>Lagarto - SE<br />Tv. Pedro José Dos Santos, 38 - Alto da Boa Vista</span>
               </div>
               <div className="flex items-start space-x-2">
                 <Clock className="w-4 h-4 mt-0.5" />
@@ -78,7 +78,7 @@ const Footer = () => {
 
         <div className="border-t border-bronze-light/20 mt-12 pt-8 text-center">
           <p className="text-sm opacity-80">
-            © 2024 Studio Bruna Makeup. Todos os direitos reservados.
+            © 2025 Studio Bruna Makeup. Todos os direitos reservados.
           </p>
         </div>
       </div>
