@@ -36,7 +36,8 @@ const Admin = () => {
     category: 'video',
     duration: '',
     level: 'Básico',
-    content_url: ''
+    content_url: '',
+    image_url: ''
   });
 
   const [serviceForm, setServiceForm] = useState({
@@ -123,7 +124,8 @@ const Admin = () => {
         category: 'video',
         duration: '',
         level: 'Básico',
-        content_url: ''
+        content_url: '',
+        image_url: ''
       });
       fetchData();
     } catch (error) {
@@ -366,12 +368,22 @@ const Admin = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="content_url">URL do Conteúdo</Label>
+                      <Label htmlFor="content_url">URL do Conteúdo (Kiwify)</Label>
                       <Input
                         id="content_url"
                         value={courseForm.content_url}
                         onChange={(e) => setCourseForm({...courseForm, content_url: e.target.value})}
-                        placeholder="https://..."
+                        placeholder="https://kiwify.app/..."
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="image_url">URL da Imagem</Label>
+                      <Input
+                        id="image_url"
+                        value={courseForm.image_url}
+                        onChange={(e) => setCourseForm({...courseForm, image_url: e.target.value})}
+                        placeholder="https://exemplo.com/imagem.jpg"
                       />
                     </div>
                     <div className="space-y-2 md:col-span-2">
