@@ -11,7 +11,7 @@ const About = () => {
     },
     {
       icon: <Award className="w-8 h-8" />,
-      number: "5",
+      number: "8",
       label: "Anos de Experiência", 
       description: "Aperfeiçoando técnicas constantemente"
     },
@@ -45,7 +45,7 @@ const About = () => {
               </h2>
               <div className="space-y-4 text-bronze-light leading-relaxed">
                 <p>
-                  Há mais de 5 anos, me dedico à arte da maquiagem e ao cuidado com a beleza. 
+                  Há mais de 8 anos, me dedico à arte da maquiagem e ao cuidado com a beleza. 
                   Minha paixão é realçar a beleza natural de cada pessoa, criando looks únicos 
                   e inesquecíveis.
                 </p>
