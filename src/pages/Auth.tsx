@@ -1,55 +1,46 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useEffect } from 'react';
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const Auth = () => {
+export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, signUp, user } = useAuth();
+  const { user, signIn, signUp } = useAuth();
   const navigate = useNavigate();
+  const { search } = useLocation();
+  const params = new URLSearchParams(search);
+  const redirect = params.get("redirect") || "/";
 
-  // Redirect if already logged in
   useEffect(() => {
-    if (user) {
-      navigate('/');
-    }
-  }, [user, navigate]);
+    if (user) navigate(redirect, { replace: true });
+  }, [user, redirect, navigate]);
 
-  const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
+  async function handleSignIn(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setIsLoading(true);
-
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-
+    const fd = new FormData(e.currentTarget);
+    const email = String(fd.get("email"));
+    const password = String(fd.get("password"));
     const { error } = await signIn(email, password);
-    
-    if (!error) {
-      navigate('/');
-    }
-    
     setIsLoading(false);
-  };
+    if (!error) navigate(redirect, { replace: true });
+  }
 
-  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
+  async function handleSignUp(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setIsLoading(true);
-
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    const fullName = formData.get('fullName') as string;
-
+    const fd = new FormData(e.currentTarget);
+    const fullName = String(fd.get("fullName"));
+    const email = String(fd.get("email"));
+    const password = String(fd.get("password"));
     const { error } = await signUp(email, password, fullName);
-    
     setIsLoading(false);
-  };
+    if (!error) navigate(redirect, { replace: true });
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-warm-white via-nude-light to-cream flex items-center justify-center p-4">
@@ -80,38 +71,20 @@ const Auth = () => {
             <Card className="bg-white/80 backdrop-blur-sm border-nude-light">
               <CardHeader className="text-center">
                 <CardTitle className="text-bronze">Entre em sua conta</CardTitle>
-                <CardDescription>
-                  Acesse sua área pessoal e aproveite todos os recursos
-                </CardDescription>
+                <CardDescription>Acesse sua área pessoal</CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSignIn} className="space-y-4">
+                <form onSubmit={handleSignIn} className="space-y-4" autoComplete="on">
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      required
-                      className="border-nude-light focus:border-bronze"
-                    />
+                    <Input id="email" name="email" type="email" required className="border-nude-light focus:border-bronze" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="password">Senha</Label>
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      required
-                      className="border-nude-light focus:border-bronze"
-                    />
+                    <Input id="password" name="password" type="password" required className="border-nude-light focus:border-bronze" />
                   </div>
-                  <Button
-                    type="submit"
-                    className="w-full bg-gradient-to-r from-bronze to-bronze-light hover:shadow-warm"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Entrando...' : 'Entrar'}
+                  <Button type="submit" className="w-full bg-gradient-to-r from-bronze to-bronze-light hover:shadow-warm" disabled={isLoading}>
+                    {isLoading ? "Entrando..." : "Entrar"}
                   </Button>
                 </form>
               </CardContent>
@@ -122,49 +95,24 @@ const Auth = () => {
             <Card className="bg-white/80 backdrop-blur-sm border-nude-light">
               <CardHeader className="text-center">
                 <CardTitle className="text-bronze">Crie sua conta</CardTitle>
-                <CardDescription>
-                  Cadastre-se para ter acesso a cursos e agendamento
-                </CardDescription>
+                <CardDescription>Cadastre-se para cursos e agendamentos</CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSignUp} className="space-y-4">
+                <form onSubmit={handleSignUp} className="space-y-4" autoComplete="on">
                   <div className="space-y-2">
                     <Label htmlFor="fullName">Nome completo</Label>
-                    <Input
-                      id="fullName"
-                      name="fullName"
-                      type="text"
-                      required
-                      className="border-nude-light focus:border-bronze"
-                    />
+                    <Input id="fullName" name="fullName" type="text" required className="border-nude-light focus:border-bronze" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      required
-                      className="border-nude-light focus:border-bronze"
-                    />
+                    <Input id="email" name="email" type="email" required className="border-nude-light focus:border-bronze" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="password">Senha</Label>
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      required
-                      minLength={6}
-                      className="border-nude-light focus:border-bronze"
-                    />
+                    <Input id="password" name="password" type="password" minLength={6} required className="border-nude-light focus:border-bronze" />
                   </div>
-                  <Button
-                    type="submit"
-                    className="w-full bg-gradient-to-r from-bronze to-bronze-light hover:shadow-warm"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Criando conta...' : 'Criar conta'}
+                  <Button type="submit" className="w-full bg-gradient-to-r from-bronze to-bronze-light hover:shadow-warm" disabled={isLoading}>
+                    {isLoading ? "Criando conta..." : "Criar conta"}
                   </Button>
                 </form>
               </CardContent>
@@ -173,17 +121,11 @@ const Auth = () => {
         </Tabs>
 
         <div className="text-center mt-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/')}
-            className="text-bronze hover:text-bronze-light"
-          >
+          <Button variant="ghost" onClick={() => navigate("/")} className="text-bronze hover:text-bronze-light">
             ← Voltar ao site
           </Button>
         </div>
       </div>
     </div>
   );
-};
-
-export default Auth;
+}

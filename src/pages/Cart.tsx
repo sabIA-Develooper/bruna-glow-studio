@@ -34,13 +34,13 @@ const Cart = () => {
 
   const handleCheckout = () => {
     if (!user) {
-      navigate('/auth');
+      navigate("/auth?redirect=/cart");
       return;
     }
-    // TODO: Implementar checkout/pagamento
-    alert('Funcionalidade de checkout será implementada em breve!');
+    // TODO real: integração de pagamento
+    alert("Pedido confirmado! (fluxo de teste)");
   };
-
+  
   if (items.length === 0) {
     return (
       <>
