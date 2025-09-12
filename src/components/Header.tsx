@@ -76,6 +76,16 @@ const Header = () => {
                 </Badge>
               )}
             </Button>
+            {/* Link para Dashboard sempre visível */}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-bronze hover:text-bronze-light"
+              onClick={() => navigate('/dashboard')}
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Dashboard
+            </Button>
             
             {user ? (
               <DropdownMenu>
@@ -89,11 +99,11 @@ const Header = () => {
                     {user.email}
                   </DropdownMenuItem>
                   {isAdmin && (
-                    <DropdownMenuItem onClick={() => navigate('/admin')}>
-                      <Settings className="w-4 h-4 mr-2" />
-                      Admin
-                    </DropdownMenuItem>
-                  )}
+                     <DropdownMenuItem onClick={() => navigate('/admin')}>
+                       <Settings className="w-4 h-4 mr-2" />
+                       Dashboard
+                     </DropdownMenuItem>
+                   )}
                   <DropdownMenuItem onClick={signOut}>
                     <LogOut className="w-4 h-4 mr-2" />
                     Sair
@@ -154,21 +164,30 @@ const Header = () => {
                   <Calendar className="w-4 h-4 mr-2" />
                   Agendar
                 </Button>
-                <Button 
-                  size="sm" 
-                  className="bg-gradient-to-r from-bronze to-bronze-light relative"
-                  onClick={() => navigate('/carrinho')}
-                >
-                  <ShoppingCart className="w-4 h-4 mr-2" />
-                  Carrinho
-                  {itemCount > 0 && (
-                    <Badge 
-                      className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 min-w-[1.25rem] h-5"
-                    >
-                      {itemCount}
-                    </Badge>
-                  )}
-                </Button>
+                 <Button 
+                   size="sm" 
+                   className="bg-gradient-to-r from-bronze to-bronze-light relative"
+                   onClick={() => navigate('/carrinho')}
+                 >
+                   <ShoppingCart className="w-4 h-4 mr-2" />
+                   Carrinho
+                   {itemCount > 0 && (
+                     <Badge 
+                       className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 min-w-[1.25rem] h-5"
+                     >
+                       {itemCount}
+                     </Badge>
+                   )}
+                 </Button>
+                 <Button 
+                   variant="outline" 
+                   size="sm" 
+                   className="border-bronze text-bronze hover:bg-bronze hover:text-primary-foreground"
+                   onClick={() => navigate('/dashboard')}
+                 >
+                   <Settings className="w-4 h-4 mr-2" />
+                   Dashboard
+                 </Button>
                 {user ? (
                   <Button 
                     variant="outline" 

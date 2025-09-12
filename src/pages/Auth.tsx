@@ -11,13 +11,21 @@ export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
   const { user, signIn, signUp } = useAuth();
   const navigate = useNavigate();
-  const { search } = useLocation();
+  const location = useLocation();
+  const { search } = location;
   const params = new URLSearchParams(search);
-  const redirect = params.get("redirect") || "/";
+  const redirect = params.get("redirect") || location.state?.redirect || "/";
+  const serviceId = location.state?.serviceId;
 
   useEffect(() => {
-    if (user) navigate(redirect, { replace: true });
-  }, [user, redirect, navigate]);
+    if (user) {
+      if (redirect === '/agendamento' && serviceId) {
+        navigate(redirect, { replace: true, state: { serviceId } });
+      } else {
+        navigate(redirect, { replace: true });
+      }
+    }
+  }, [user, redirect, navigate, serviceId]);
 
   async function handleSignIn(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -27,7 +35,13 @@ export default function Auth() {
     const password = String(fd.get("password"));
     const { error } = await signIn(email, password);
     setIsLoading(false);
-    if (!error) navigate(redirect, { replace: true });
+    if (!error) {
+      if (redirect === '/agendamento' && serviceId) {
+        navigate(redirect, { replace: true, state: { serviceId } });
+      } else {
+        navigate(redirect, { replace: true });
+      }
+    }
   }
 
   async function handleSignUp(e: React.FormEvent<HTMLFormElement>) {
@@ -39,7 +53,13 @@ export default function Auth() {
     const password = String(fd.get("password"));
     const { error } = await signUp(email, password, fullName);
     setIsLoading(false);
-    if (!error) navigate(redirect, { replace: true });
+    if (!error) {
+      if (redirect === '/agendamento' && serviceId) {
+        navigate(redirect, { replace: true, state: { serviceId } });
+      } else {
+        navigate(redirect, { replace: true });
+      }
+    }
   }
 
   return (

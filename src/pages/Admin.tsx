@@ -15,7 +15,6 @@ import { Plus, Edit, Trash2, Users, BookOpen, Calendar, ShoppingCart } from 'luc
 import Header from '@/components/Header';
 
 const Admin = () => {
-  const { user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
   const [courses, setCourses] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
@@ -48,16 +47,8 @@ const Admin = () => {
   });
 
   useEffect(() => {
-    if (!loading && (!user || !isAdmin)) {
-      navigate('/');
-    }
-  }, [user, isAdmin, loading, navigate]);
-
-  useEffect(() => {
-    if (isAdmin) {
-      fetchData();
-    }
-  }, [isAdmin]);
+    fetchData();
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -207,15 +198,6 @@ const Admin = () => {
     }).format(price);
   };
 
-  if (loading) {
-    return <div className="min-h-screen bg-gradient-to-br from-warm-white via-nude-light to-cream flex items-center justify-center">
-      <div className="text-bronze">Carregando...</div>
-    </div>;
-  }
-
-  if (!user || !isAdmin) {
-    return null;
-  }
 
   return (
     <>

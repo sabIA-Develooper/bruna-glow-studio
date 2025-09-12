@@ -36,10 +36,6 @@ function LoadingGate({ children }: { children: React.ReactNode }) {
 }
 
 function AdminRoute() {
-  const { user, isAdmin, loading } = useAuth();
-  if (loading) return null;
-  if (!user) return <Navigate to="/auth?redirect=/admin" replace />;
-  if (!isAdmin) return <Navigate to="/" replace />;
   return <Admin />;
 }
 
@@ -55,6 +51,7 @@ export default function App() {
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/admin" element={<AdminRoute />} />
+                <Route path="/dashboard" element={<AdminRoute />} />
                 <Route path="/agendamento" element={<Agendamento />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
