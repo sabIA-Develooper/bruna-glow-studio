@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -113,7 +115,7 @@ function PreviewModal({
           <div className="flex gap-3">
             <Button variant="outline" className="border-bronze" onClick={onClose}>Fechar</Button>
             <Button className="bg-gradient-to-r from-bronze to-bronze-light" onClick={onEnroll}>
-              <ShoppingCart className="w-4 h-4 mr-2" /> Matricular-se (teste)
+              <ShoppingCart className="w-4 h-4 mr-2" /> Matricular-se
             </Button>
           </div>
         </div>
@@ -124,11 +126,26 @@ function PreviewModal({
 
 export default function Courses() {
   const navigate = useNavigate();
+  const { addToCart } = useCart();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [current, setCurrent] = useState<Course | null>(null);
 
   const preview = (course: Course) => { setCurrent(course); setOpen(true); };
-  const enroll = () => { setOpen(false); navigate("/auth?redirect=/cart"); };
+  
+  const enroll = (course?: Course) => { 
+    const courseToAdd = course || current;
+    if (courseToAdd) {
+      addToCart({
+        id: courseToAdd.id.toString(),
+        title: courseToAdd.title,
+        price: courseToAdd.price,
+        image_url: '',
+        category: 'video'
+      });
+      setOpen(false);
+    }
+  };
 
   return (
     <section id="courses" className="py-20 bg-gradient-to-b from-warm-white to-cream">
@@ -181,7 +198,7 @@ export default function Courses() {
                   <Button variant="outline" className="border-bronze text-bronze hover:bg-bronze hover:text-primary-foreground" onClick={() => preview(course)}>
                     <Eye className="w-4 h-4 mr-2" /> Ver Prévia
                   </Button>
-                  <Button className="bg-gradient-to-r from-bronze to-bronze-light flex-1" onClick={enroll}>
+                  <Button className="bg-gradient-to-r from-bronze to-bronze-light flex-1" onClick={() => enroll(course)}>
                     <ShoppingCart className="w-4 h-4 mr-2" /> Matricular-se
                   </Button>
                 </div>
@@ -191,7 +208,7 @@ export default function Courses() {
         </div>
       </div>
 
-      <PreviewModal open={open} onClose={() => setOpen(false)} course={current} onEnroll={enroll} />
+      <PreviewModal open={open} onClose={() => setOpen(false)} course={current} onEnroll={() => enroll()} />
     </section>
   );
 }

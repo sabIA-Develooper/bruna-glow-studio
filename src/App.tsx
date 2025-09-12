@@ -49,7 +49,7 @@ export default function App() {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/cart" element={<Cart />} />
+                <Route path="/carrinho" element={<Cart />} />
                 <Route path="/admin" element={<AdminRoute />} />
                 <Route path="/dashboard" element={<AdminRoute />} />
                 <Route path="/agendamento" element={<Agendamento />} />

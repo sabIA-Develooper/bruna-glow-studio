@@ -37,6 +37,11 @@ const Agendamento = () => {
   ];
 
   useEffect(() => {
+    if (!user) {
+      navigate('/auth?redirect=/agendamento');
+      return;
+    }
+
     // Carrega lista de serviços sempre
     fetchActiveServices();
 
@@ -49,7 +54,7 @@ const Agendamento = () => {
     if (user?.email) {
       setClientEmail(user.email);
     }
-  }, [serviceId, user]);
+  }, [serviceId, user, navigate]);
 
   const fetchService = async () => {
     try {
@@ -127,13 +132,8 @@ const Agendamento = () => {
         toast.success('Agendamento realizado com sucesso!');
         navigate('/');
       } else {
-        const serviceName = service?.name ?? 'Serviço';
-        const formattedDate = appointmentDate.toLocaleDateString('pt-BR');
-        const msg = `Olá! Gostaria de agendar ${serviceName} em ${formattedDate} às ${selectedTime}. Nome: ${clientName}. Email: ${clientEmail}. Telefone: ${clientPhone}. Observações: ${notes || 'Nenhuma'}.`;
-        const whatsappNumber = '5579998186347';
-        const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(msg)}`;
-        window.open(url, '_blank');
-        toast.success('Abrimos o WhatsApp para finalizar seu agendamento.');
+        toast.error('Você precisa estar logado para agendar');
+        navigate('/auth?redirect=/agendamento');
       }
     } catch (error) {
       console.error('Erro ao criar agendamento:', error);

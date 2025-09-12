@@ -19,7 +19,7 @@ export default function Auth() {
 
   useEffect(() => {
     if (user) {
-      if (redirect === '/agendamento' && serviceId) {
+      if (redirect.includes('/agendamento') && serviceId) {
         navigate(redirect, { replace: true, state: { serviceId } });
       } else {
         navigate(redirect, { replace: true });
@@ -36,7 +36,7 @@ export default function Auth() {
     const { error } = await signIn(email, password);
     setIsLoading(false);
     if (!error) {
-      if (redirect === '/agendamento' && serviceId) {
+      if (redirect.includes('/agendamento') && serviceId) {
         navigate(redirect, { replace: true, state: { serviceId } });
       } else {
         navigate(redirect, { replace: true });
@@ -54,7 +54,7 @@ export default function Auth() {
     const { error } = await signUp(email, password, fullName);
     setIsLoading(false);
     if (!error) {
-      if (redirect === '/agendamento' && serviceId) {
+      if (redirect.includes('/agendamento') && serviceId) {
         navigate(redirect, { replace: true, state: { serviceId } });
       } else {
         navigate(redirect, { replace: true });

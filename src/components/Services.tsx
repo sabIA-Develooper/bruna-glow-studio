@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Calendar, Clock, MapPin, Sparkles, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const WHATSAPP_NUMBER = "5579998186347";
 const DEFAULT_MSG = "Olá! Vim pelo site e gostaria de agendar um horário 🙂";
@@ -9,6 +10,7 @@ const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent
 
 export default function Services() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const services = [
     { id: 1, name: "Maquiagem Social", description: "Perfeita para eventos sociais e ocasiões especiais.", price: "R$ 120", duration: "90 min" },
@@ -50,7 +52,13 @@ export default function Services() {
                 <div className="flex gap-3">
                   <Button
                     className="bg-gradient-to-r from-bronze to-bronze-light hover:shadow-warm flex-1"
-                    onClick={() => navigate('/agendamento', { state: { serviceId: s.id } })}
+                    onClick={() => {
+                      if (user) {
+                        navigate('/agendamento', { state: { serviceId: s.id } });
+                      } else {
+                        navigate('/auth', { state: { redirect: '/agendamento', serviceId: s.id } });
+                      }
+                    }}
                   >
                     <Calendar className="w-4 h-4 mr-2" />
                     Agendar Agora
