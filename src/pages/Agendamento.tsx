@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { ArrowLeft, Clock, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,6 +22,8 @@ const Agendamento = () => {
   const [notes, setNotes] = useState('');
   const [service, setService] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [servicesList, setServicesList] = useState<any[]>([]);
+  const [servicesLoading, setServicesLoading] = useState(false);
   
   const location = useLocation();
   const navigate = useNavigate();
@@ -34,20 +37,19 @@ const Agendamento = () => {
   ];
 
   useEffect(() => {
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
+    // Carrega lista de serviços sempre
+    fetchActiveServices();
 
+    // Se veio com um serviço pré-selecionado
     if (serviceId) {
       fetchService();
     }
 
-    // Preencher dados do usuário
+    // Preencher dados do usuário se existir
     if (user?.email) {
       setClientEmail(user.email);
     }
-  }, [serviceId, user, navigate]);
+  }, [serviceId, user]);
 
   const fetchService = async () => {
     try {
@@ -63,6 +65,25 @@ const Agendamento = () => {
       console.error('Erro ao buscar serviço:', error);
       toast.error('Erro ao carregar serviço');
     }
+};
+
+  const fetchActiveServices = async () => {
+    try {
+      setServicesLoading(true);
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .eq('is_active', true)
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      setServicesList(data || []);
+    } catch (error) {
+      console.error('Erro ao listar serviços:', error);
+      toast.error('Erro ao carregar serviços');
+    } finally {
+      setServicesLoading(false);
+    }
   };
 
   const formatPrice = (price: number) => {
@@ -75,7 +96,7 @@ const Agendamento = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedDate || !selectedTime || !clientName || !clientEmail || !clientPhone) {
+    if (!service || !selectedDate || !selectedTime || !clientName || !clientEmail || !clientPhone) {
       toast.error('Preencha todos os campos obrigatórios');
       return;
     }
@@ -87,23 +108,33 @@ const Agendamento = () => {
       const [hours, minutes] = selectedTime.split(':');
       appointmentDate.setHours(parseInt(hours), parseInt(minutes));
 
-      const { error } = await supabase
-        .from('appointments')
-        .insert({
-          user_id: user?.id,
-          service_id: serviceId,
-          appointment_date: appointmentDate.toISOString(),
-          client_name: clientName,
-          client_email: clientEmail,
-          client_phone: clientPhone,
-          notes: notes,
-          status: 'pending'
-        });
+      if (user) {
+        const { error } = await supabase
+          .from('appointments')
+          .insert({
+            user_id: user.id,
+            service_id: service?.id,
+            appointment_date: appointmentDate.toISOString(),
+            client_name: clientName,
+            client_email: clientEmail,
+            client_phone: clientPhone,
+            notes: notes,
+            status: 'pending'
+          });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast.success('Agendamento realizado com sucesso!');
-      navigate('/');
+        toast.success('Agendamento realizado com sucesso!');
+        navigate('/');
+      } else {
+        const serviceName = service?.name ?? 'Serviço';
+        const formattedDate = appointmentDate.toLocaleDateString('pt-BR');
+        const msg = `Olá! Gostaria de agendar ${serviceName} em ${formattedDate} às ${selectedTime}. Nome: ${clientName}. Email: ${clientEmail}. Telefone: ${clientPhone}. Observações: ${notes || 'Nenhuma'}.`;
+        const whatsappNumber = '5579998186347';
+        const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(msg)}`;
+        window.open(url, '_blank');
+        toast.success('Abrimos o WhatsApp para finalizar seu agendamento.');
+      }
     } catch (error) {
       console.error('Erro ao criar agendamento:', error);
       toast.error('Erro ao realizar agendamento');
@@ -112,18 +143,6 @@ const Agendamento = () => {
     }
   };
 
-  if (!service) {
-    return (
-      <>
-        <Header />
-        <div className="min-h-screen bg-gradient-to-br from-warm-white via-nude-light to-cream pt-20">
-          <div className="container mx-auto px-4 py-16 text-center">
-            <p className="text-bronze">Carregando...</p>
-          </div>
-        </div>
-      </>
-    );
-  }
 
   return (
     <>
@@ -152,29 +171,37 @@ const Agendamento = () => {
                     <CardTitle className="text-bronze">Resumo do Serviço</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div>
-                      <h3 className="font-semibold text-bronze">{service.name}</h3>
-                      <p className="text-sm text-bronze-light mt-1">{service.description}</p>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2 text-sm text-bronze-light">
-                      <Clock className="w-4 h-4" />
-                      <span>{service.duration} minutos</span>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2 text-sm text-bronze-light">
-                      <MapPin className="w-4 h-4" />
-                      <span>No estúdio</span>
-                    </div>
-                    
-                    <div className="border-t pt-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-bronze">Preço:</span>
-                        <span className="text-lg font-bold text-bronze">
-                          {formatPrice(service.price)}
-                        </span>
+                    {service ? (
+                      <>
+                        <div>
+                          <h3 className="font-semibold text-bronze">{service.name}</h3>
+                          <p className="text-sm text-bronze-light mt-1">{service.description}</p>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2 text-sm text-bronze-light">
+                          <Clock className="w-4 h-4" />
+                          <span>{service.duration} minutos</span>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2 text-sm text-bronze-light">
+                          <MapPin className="w-4 h-4" />
+                          <span>No estúdio</span>
+                        </div>
+                        
+                        <div className="border-t pt-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-bronze">Preço:</span>
+                            <span className="text-lg font-bold text-bronze">
+                              {formatPrice(service.price)}
+                            </span>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-sm text-bronze-light">
+                        Selecione um serviço para ver o resumo e valor.
                       </div>
-                    </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>
@@ -187,6 +214,29 @@ const Agendamento = () => {
                   </CardHeader>
                   <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-6">
+                      {/* Serviço */}
+                      <div>
+                        <Label htmlFor="service">Serviço *</Label>
+                        <Select
+                          value={service?.id || ''}
+                          onValueChange={(id) => {
+                            const s = servicesList.find((sv: any) => sv.id === id);
+                            if (s) setService(s);
+                          }}
+                        >
+                          <SelectTrigger id="service">
+                            <SelectValue placeholder={servicesLoading ? 'Carregando...' : 'Selecione um serviço'} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {servicesList.map((sv: any) => (
+                              <SelectItem key={sv.id} value={sv.id}>
+                                {sv.name} — {formatPrice(sv.price)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
                       {/* Dados Pessoais */}
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>

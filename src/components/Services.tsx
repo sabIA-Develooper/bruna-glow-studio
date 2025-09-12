@@ -50,7 +50,7 @@ export default function Services() {
                 <div className="flex gap-3">
                   <Button
                     className="bg-gradient-to-r from-bronze to-bronze-light hover:shadow-warm flex-1"
-                    onClick={() => navigate("/auth", { state: { redirect: "/agendamento", serviceId: s.id } })}
+                    onClick={() => navigate('/agendamento', { state: { serviceId: s.id } })}
                   >
                     <Calendar className="w-4 h-4 mr-2" />
                     Agendar Agora

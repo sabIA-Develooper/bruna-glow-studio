@@ -50,13 +50,7 @@ const Header = () => {
               variant="outline" 
               size="sm" 
               className="border-bronze text-bronze hover:bg-bronze hover:text-primary-foreground"
-              onClick={() => {
-                if (user) {
-                  navigate('/agendamento');
-                } else {
-                  navigate('/auth');
-                }
-              }}
+              onClick={() => navigate('/agendamento')}
             >
               <Calendar className="w-4 h-4 mr-2" />
               Agendar
@@ -153,13 +147,7 @@ const Header = () => {
                   variant="outline" 
                   size="sm" 
                   className="border-bronze text-bronze hover:bg-bronze hover:text-primary-foreground"
-                  onClick={() => {
-                    if (user) {
-                      navigate('/agendamento');
-                    } else {
-                      navigate('/auth');
-                    }
-                  }}
+                   onClick={() => navigate('/agendamento')}
                 >
                   <Calendar className="w-4 h-4 mr-2" />
                   Agendar
