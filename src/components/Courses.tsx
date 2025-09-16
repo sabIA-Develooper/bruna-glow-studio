@@ -1,214 +1,268 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useCart } from "@/contexts/CartContext";
-import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Play, FileText, Star, Clock, Users, ShoppingCart, Eye, BookOpen } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { apiService } from '@/services/api';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Play, Star, Users, Clock, BookOpen, Award } from 'lucide-react';
 
-type Course = {
-  id: number;
+interface Course {
+  id: string;
   title: string;
   description: string;
   price: number;
-  originalPrice?: number;
   rating: number;
   students: number;
   duration: string;
   lessons: number;
-  level: "Iniciante" | "Intermediário" | "Avançado";
+  level: string;
   features: string[];
-  preview?: { type: "video" | "texto"; url?: string; sampleText?: string };
-};
-
-const YT_EMBED = "https://www.youtube.com/embed/Xxl15httm5s?rel=0&modestbranding=1";
-
-const COURSES: Course[] = [
-  {
-    id: 1,
-    title: "Pele Perfeita: do Skin Prep ao Glow",
-    description: "Domine a preparação de pele e acabamento profissional.",
-    price: 97, originalPrice: 197, rating: 4.9, students: 1240,
-    duration: "3h 40min", lessons: 16, level: "Intermediário",
-    features: ["Skin prep completo", "Texturas e camadas", "Fixação e glow"],
-    preview: { type: "video", url: YT_EMBED },
-  },
-  {
-    id: 2,
-    title: "Contorno & Iluminação 360°",
-    description: "Técnicas atualizadas para diferentes formatos de rosto.",
-    price: 147, originalPrice: 247, rating: 5.0, students: 856,
-    duration: "5h 15min", lessons: 18, level: "Avançado",
-    features: ["Mapeamento facial", "Produtos cremosos x pó", "Blend perfeito"],
-    preview: { type: "video", url: YT_EMBED },
-  },
-  {
-    id: 3,
-    title: "Noivas: Guia Completo",
-    description: "Do briefing ao grande dia: testes, durabilidade e foto.",
-    price: 197, originalPrice: 297, rating: 4.8, students: 640,
-    duration: "6h 10min", lessons: 22, level: "Avançado",
-    features: ["Teste de noiva", "Kit do dia D", "Protocolo anti-flashback"],
-    preview: { type: "video", url: YT_EMBED },
-  },
-];
-
-function PreviewModal({
-  open, onClose, course, onEnroll,
-}: { open: boolean; onClose: () => void; course: Course | null; onEnroll: () => void }) {
-  if (!open || !course) return null;
-
-  const backdrop = (e: React.MouseEvent) => { if (e.target === e.currentTarget) onClose(); };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={backdrop} role="dialog" aria-modal="true">
-      <div className="w-full max-w-2xl rounded-2xl bg-card text-card-foreground border border-nude-light shadow-xl overflow-hidden">
-        <div className="p-6 border-b border-nude-light">
-          <h3 className="text-2xl font-bold text-bronze">{course.title}</h3>
-          <p className="text-sm text-bronze-light mt-1">{course.description}</p>
-        </div>
-
-        <div className="p-6 space-y-4">
-          <div className="aspect-video w-full rounded-xl overflow-hidden border border-nude-light">
-            {course.preview?.type === "video" && course.preview.url ? (
-              <iframe
-                src={course.preview.url}
-                title={`Prévia — ${course.title}`}
-                className="w-full h-full"
-                frameBorder={0}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                referrerPolicy="strict-origin-when-cross-origin"
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-nude to-nude-light flex items-center justify-center">
-                <div className="flex flex-col items-center text-center">
-                  <Play className="w-10 h-10 mb-2" />
-                  <span className="text-sm text-bronze-light">Prévia indisponível</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="grid grid-cols-3 gap-4 text-sm">
-            <span className="flex items-center gap-2"><Clock className="w-4 h-4" />{course.duration}</span>
-            <span className="flex items-center gap-2"><BookOpen className="w-4 h-4" />{course.lessons} aulas</span>
-            <span className="flex items-center gap-2"><Users className="w-4 h-4" />{course.students.toLocaleString()} alunas</span>
-          </div>
-
-          <ul className="grid sm:grid-cols-2 gap-2 mt-2">
-            {course.features.map((f, i) => (
-              <li key={i} className="flex items-center gap-2 text-sm text-bronze">
-                <div className="w-2 h-2 rounded-full bg-bronze" /> {f}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="p-6 border-t border-nude-light flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl font-bold text-bronze">R$ {course.price}</span>
-            {course.originalPrice && <span className="text-sm line-through text-bronze-light">R$ {course.originalPrice}</span>}
-            <Badge className="bg-nude text-bronze border border-nude-light">{course.level}</Badge>
-          </div>
-          <div className="flex gap-3">
-            <Button variant="outline" className="border-bronze" onClick={onClose}>Fechar</Button>
-            <Button className="bg-gradient-to-r from-bronze to-bronze-light" onClick={onEnroll}>
-              <ShoppingCart className="w-4 h-4 mr-2" /> Matricular-se
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  preview?: string;
 }
 
-export default function Courses() {
-  const navigate = useNavigate();
+const Courses = () => {
   const { addToCart } = useCart();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [current, setCurrent] = useState<Course | null>(null);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const preview = (course: Course) => { setCurrent(course); setOpen(true); };
-  
-  const enroll = (course?: Course) => { 
+  useEffect(() => {
+    loadCourses();
+  }, []);
+
+  const loadCourses = async () => {
+    try {
+      const data = await apiService.getCourses();
+      const mappedCourses = data.map((course: any) => ({
+        id: course.id,
+        title: course.title,
+        description: course.description || '',
+        price: parseFloat(course.price),
+        rating: 4.8,
+        students: 1234,
+        duration: course.duration || '2h 30min',
+        lessons: 15,
+        level: course.level || 'Básico',
+        features: [
+          'Acesso vitalício',
+          'Certificado de conclusão',
+          'Suporte via WhatsApp',
+          'Material didático PDF'
+        ],
+        preview: course.content_url
+      }));
+      setCourses(mappedCourses);
+    } catch (error) {
+      console.error('Error loading courses:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const preview = (course: Course) => {
+    setCurrent(course);
+    setOpen(true);
+  };
+
+  const enroll = (course?: Course) => {
     const courseToAdd = course || current;
     if (courseToAdd) {
-      addToCart({
-        id: courseToAdd.id.toString(),
-        title: courseToAdd.title,
-        price: courseToAdd.price,
-        image_url: '',
-        category: 'video'
-      });
+      addToCart(courseToAdd);
       setOpen(false);
     }
   };
 
-  return (
-    <section id="courses" className="py-20 bg-gradient-to-b from-warm-white to-cream">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-14">
-          <div className="inline-flex items-center gap-2 bg-nude/30 rounded-full px-4 py-2 mb-4">
-            <FileText className="w-4 h-4 text-bronze" />
-            <span className="text-sm text-bronze font-medium">Cursos</span>
+  if (loading) {
+    return (
+      <section className="py-20 bg-gradient-to-br from-warm-white via-nude-light to-cream">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-bronze mb-4">Carregando cursos...</h2>
           </div>
-          <h2 className="text-4xl lg:text-5xl font-bold text-bronze mb-3">Aprenda com a Bruna</h2>
-          <p className="text-lg text-bronze-light max-w-2xl mx-auto">
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section id="cursos" className="py-20 bg-gradient-to-br from-warm-white via-nude-light to-cream">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold text-bronze mb-4">
+            Cursos de Harmonização Facial
+          </h2>
+          <p className="text-xl text-bronze-light max-w-2xl mx-auto">
             Domine técnicas profissionais com conteúdo direto ao ponto.
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {COURSES.map((course) => (
+          {courses.length > 0 ? courses.map((course) => (
             <Card key={course.id} className="group border-nude-light overflow-hidden hover:shadow-warm transition-all duration-300">
               <div className="aspect-video bg-gradient-to-br from-nude to-nude-light relative overflow-hidden">
                 <div className="absolute top-3 right-3 bg-card rounded-full px-3 py-1 border border-nude-light">
                   <span className="text-sm font-semibold text-bronze">R$ {course.price}</span>
                 </div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="w-16 h-16 rounded-full bg-white/80 hover:bg-white border-2 border-bronze shadow-lg transition-all group-hover:scale-110"
+                    onClick={() => preview(course)}
+                  >
+                    <Play className="w-6 h-6 text-bronze fill-bronze" />
+                  </Button>
+                </div>
               </div>
-
-              <div className="p-6 space-y-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="text-xl font-bold text-bronze">{course.title}</h3>
-                    <p className="text-sm text-bronze-light mt-1">{course.description}</p>
+              
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <Badge variant="outline" className="border-bronze text-bronze">
+                    {course.level}
+                  </Badge>
+                  <div className="flex items-center gap-1 text-sm text-bronze-light">
+                    <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                    <span>{course.rating}</span>
+                    <span>({course.students})</span>
                   </div>
-                  <Badge className="bg-nude text-bronze border border-nude-light">{course.level}</Badge>
                 </div>
-
-                <div className="flex items-center gap-4 text-sm text-bronze-light">
-                  <span className="flex items-center gap-1"><Star className="w-4 h-4" />{course.rating.toFixed(1)}</span>
-                  <span className="flex items-center gap-1"><Users className="w-4 h-4" />{course.students.toLocaleString()}</span>
-                  <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{course.duration}</span>
-                  <span className="flex items-center gap-1"><BookOpen className="w-4 h-4" />{course.lessons} aulas</span>
+                
+                <h3 className="text-xl font-semibold text-bronze mb-2 line-clamp-2">
+                  {course.title}
+                </h3>
+                
+                <p className="text-bronze-light mb-4 line-clamp-3">
+                  {course.description}
+                </p>
+                
+                <div className="flex items-center gap-4 text-sm text-bronze-light mb-4">
+                  <div className="flex items-center gap-1">
+                    <Clock className="w-4 h-4" />
+                    <span>{course.duration}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <BookOpen className="w-4 h-4" />
+                    <span>{course.lessons} aulas</span>
+                  </div>
                 </div>
-
-                <ul className="space-y-2">
-                  {course.features.map((f, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm text-bronze">
-                      <div className="w-2 h-2 rounded-full bg-bronze" /> {f}
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="flex gap-3 pt-2">
-                  <Button variant="outline" className="border-bronze text-bronze hover:bg-bronze hover:text-primary-foreground" onClick={() => preview(course)}>
-                    <Eye className="w-4 h-4 mr-2" /> Ver Prévia
+                
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1 border-bronze text-bronze hover:bg-bronze hover:text-cream"
+                    onClick={() => preview(course)}
+                  >
+                    Ver Preview
                   </Button>
-                  <Button className="bg-gradient-to-r from-bronze to-bronze-light flex-1" onClick={() => enroll(course)}>
-                    <ShoppingCart className="w-4 h-4 mr-2" /> Matricular-se
+                  <Button 
+                    className="flex-1 bg-gradient-to-r from-bronze to-bronze-light hover:from-bronze-light hover:to-bronze text-cream"
+                    onClick={() => enroll(course)}
+                  >
+                    Inscrever-se
                   </Button>
                 </div>
-              </div>
+              </CardContent>
             </Card>
-          ))}
+          )) : (
+            <div className="col-span-full text-center py-8">
+              <p className="text-bronze-light">Nenhum curso disponível no momento.</p>
+            </div>
+          )}
         </div>
       </div>
 
-      <PreviewModal open={open} onClose={() => setOpen(false)} course={current} onEnroll={() => enroll()} />
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl text-bronze">{current?.title}</DialogTitle>
+          </DialogHeader>
+          
+          {current && (
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="aspect-video bg-gradient-to-br from-nude to-nude-light rounded-lg flex items-center justify-center">
+                {current.preview ? (
+                  <iframe
+                    src={current.preview}
+                    className="w-full h-full rounded-lg"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : (
+                  <div className="text-center text-bronze-light">
+                    <Play className="w-16 h-16 mx-auto mb-2" />
+                    <p>Preview indisponível</p>
+                  </div>
+                )}
+              </div>
+              
+              <div className="space-y-4">
+                <div className="flex items-center gap-4 text-sm text-bronze-light">
+                  <div className="flex items-center gap-1">
+                    <Clock className="w-4 h-4" />
+                    <span>{current.duration}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <BookOpen className="w-4 h-4" />
+                    <span>{current.lessons} aulas</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Users className="w-4 h-4" />
+                    <span>{current.students} alunos</span>
+                  </div>
+                </div>
+                
+                <p className="text-bronze-light">{current.description}</p>
+                
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-bronze flex items-center gap-2">
+                    <Award className="w-5 h-5" />
+                    O que você vai aprender:
+                  </h4>
+                  <ul className="space-y-1">
+                    {current.features.map((feature, index) => (
+                      <li key={index} className="flex items-center gap-2 text-sm text-bronze-light">
+                        <div className="w-1.5 h-1.5 bg-bronze rounded-full" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                
+                <div className="flex items-center justify-between pt-4">
+                  <div className="text-3xl font-bold text-bronze">
+                    R$ {current.price}
+                  </div>
+                  <Badge variant="outline" className="border-bronze text-bronze">
+                    {current.level}
+                  </Badge>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setOpen(false)}
+                    className="flex-1"
+                  >
+                    Fechar
+                  </Button>
+                  <Button 
+                    onClick={() => enroll()}
+                    className="flex-1 bg-gradient-to-r from-bronze to-bronze-light hover:from-bronze-light hover:to-bronze text-cream"
+                  >
+                    Inscrever-se
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   );
-}
+};
+
+export default Courses;
