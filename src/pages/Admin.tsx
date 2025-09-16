@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { coursesApi, servicesApi, appointmentsApi, ordersApi } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -62,31 +62,19 @@ const Admin = () => {
   const fetchData = async () => {
     try {
       // Fetch courses
-      const { data: coursesData } = await supabase
-        .from('courses')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const coursesData = await coursesApi.getCourses();
       setCourses(coursesData || []);
 
       // Fetch services
-      const { data: servicesData } = await supabase
-        .from('services')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const servicesData = await servicesApi.getServices();
       setServices(servicesData || []);
 
       // Fetch appointments
-      const { data: appointmentsData } = await supabase
-        .from('appointments')
-        .select('*, services(name)')
-        .order('created_at', { ascending: false });
+      const appointmentsData = await appointmentsApi.getAppointments();
       setAppointments(appointmentsData || []);
 
       // Fetch orders
-      const { data: ordersData } = await supabase
-        .from('orders')
-        .select('*, profiles(full_name)')
-        .order('created_at', { ascending: false });
+      const ordersData = await ordersApi.getOrders();
       setOrders(ordersData || []);
 
       // Update stats
@@ -107,14 +95,10 @@ const Admin = () => {
     e.preventDefault();
     
     try {
-      const { error } = await supabase
-        .from('courses')
-        .insert([{
-          ...courseForm,
-          price: parseFloat(courseForm.price)
-        }]);
-
-      if (error) throw error;
+      await coursesApi.createCourse({
+        ...courseForm,
+        price: parseFloat(courseForm.price)
+      });
 
       toast.success('Curso criado com sucesso!');
       setCourseForm({
@@ -138,15 +122,11 @@ const Admin = () => {
     e.preventDefault();
     
     try {
-      const { error } = await supabase
-        .from('services')
-        .insert([{
-          ...serviceForm,
-          price: parseFloat(serviceForm.price),
-          duration: parseInt(serviceForm.duration)
-        }]);
-
-      if (error) throw error;
+      await servicesApi.createService({
+        ...serviceForm,
+        price: parseFloat(serviceForm.price),
+        duration: parseInt(serviceForm.duration)
+      });
 
       toast.success('Serviço criado com sucesso!');
       setServiceForm({
@@ -166,12 +146,7 @@ const Admin = () => {
     if (!confirm('Tem certeza que deseja excluir este curso?')) return;
 
     try {
-      const { error } = await supabase
-        .from('courses')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      await coursesApi.deleteCourse(id);
 
       toast.success('Curso excluído com sucesso!');
       fetchData();
@@ -185,12 +160,7 @@ const Admin = () => {
     if (!confirm('Tem certeza que deseja excluir este serviço?')) return;
 
     try {
-      const { error } = await supabase
-        .from('services')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      await servicesApi.deleteService(id);
 
       toast.success('Serviço excluído com sucesso!');
       fetchData();

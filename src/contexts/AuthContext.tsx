@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import type { User, Session } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { authApi, apiClient } from "@/lib/api-client";
+import type { AuthUser, AuthSession, Profile } from "@/types/database";
 
 type AuthContextType = {
-  user: User | null;
-  session: Session | null;
-  profile: any | null;
+  user: AuthUser | null;
+  session: AuthSession | null;
+  profile: Profile | null;
   loading: boolean;
   isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any | null }>;
@@ -21,31 +21,41 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<any | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [session, setSession] = useState<AuthSession | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
   async function loadSession() {
     try {
-      const { data: sessRes } = await supabase.auth.getSession();
-      const sess = sessRes.session ?? null;
-      setSession(sess);
-      setUser(sess?.user ?? null);
+      const token = apiClient.getToken();
+      
+      if (!token) {
+        setUser(null);
+        setSession(null);
+        setProfile(null);
+        setLoading(false);
+        return;
+      }
 
-      if (sess?.user) {
-        const { data: prof, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", sess.user.id) // perfil pelo id = auth.user.id
-          .maybeSingle();
-        if (error) console.error("[profiles select]", error);
-        setProfile(prof ?? null);
+      // Verifica se o token ainda é válido
+      const response = await authApi.me() as any;
+      
+      if (response) {
+        setUser(response.user);
+        setSession(response.session);
+        setProfile(response.profile || null);
       } else {
+        // Token inválido, limpa tudo
+        apiClient.clearToken();
+        setUser(null);
+        setSession(null);
         setProfile(null);
       }
     } catch (err) {
       console.error("[loadSession]", err);
+      // Token inválido ou erro de rede, limpa tudo
+      apiClient.clearToken();
       setUser(null);
       setSession(null);
       setProfile(null);
@@ -56,76 +66,86 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     loadSession();
-    const { data } = supabase.auth.onAuthStateChange((_evt, _sess) => {
-      loadSession();
-    });
-    const sub: any = (data as any)?.subscription ?? null;
+    
+    // Verifica periodicamente se o token ainda é válido
+    const interval = setInterval(() => {
+      const token = apiClient.getToken();
+      if (token && user) {
+        // Verifica se o token expirou
+        loadSession();
+      }
+    }, 5 * 60 * 1000); // Verifica a cada 5 minutos
+
     return () => {
-      try {
-        sub?.unsubscribe?.();
-      } catch {}
+      clearInterval(interval);
     };
-  }, []);
+  }, [user]);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
+    try {
+      const response = await authApi.login(email, password) as any;
+      
+      // Armazena o token
+      apiClient.setToken(response.session.token);
+      
+      // Atualiza o estado
+      setUser(response.user);
+      setSession(response.session);
+      setProfile(response.profile || null);
+      
+      toast.success("Login realizado!");
+      return { error: null };
+    } catch (error: any) {
       const msg = /Email not confirmed/i.test(error.message)
         ? "E-mail não confirmado. Verifique sua caixa de entrada."
         : /Invalid/i.test(error.message)
         ? "Credenciais inválidas."
-        : error.message;
+        : error.message || "Erro ao fazer login";
       toast.error(msg);
-    } else {
-      toast.success("Login realizado!");
+      return { error };
     }
-    return { error };
   };
 
   const signUp = async (email: string, password: string, fullName?: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName ?? "" } },
-    });
-
-    if (error) {
-      toast.error(error.message);
+    try {
+      const response = await authApi.register(email, password, fullName) as any;
+      
+      // Armazena o token se o registro incluir login automático
+      if (response.session) {
+        apiClient.setToken(response.session.token);
+        setUser(response.user);
+        setSession(response.session);
+        setProfile(response.profile || null);
+      }
+      
+      toast.success("Conta criada!");
+      return { error: null };
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao criar conta");
       return { error };
     }
-
-    // garante profile (insert/update com tipagem tolerante)
-    const uid = data.user?.id;
-    if (uid) {
-      const { data: existing, error: selErr } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("id", uid)
-        .maybeSingle();
-      if (selErr) console.error("[profiles exists]", selErr);
-
-      if (existing) {
-        const { error: updErr } = await supabase
-          .from("profiles")
-          .update({ full_name: fullName ?? "", email } as any)
-          .eq("id", uid);
-        if (updErr) console.error("[profiles update]", updErr);
-      } else {
-        const { error: insErr } = await supabase
-          .from("profiles")
-          .insert([{ id: uid, full_name: fullName ?? "", email }] as any);
-        if (insErr) console.error("[profiles insert]", insErr);
-      }
-    }
-
-    toast.success("Conta criada!");
-    return { error: null };
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) toast.error(error.message);
-    else toast.success("Logout realizado!");
+    try {
+      await authApi.logout();
+      
+      // Limpa o estado local
+      apiClient.clearToken();
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      
+      toast.success("Logout realizado!");
+    } catch (error: any) {
+      // Mesmo com erro, limpa o estado local
+      apiClient.clearToken();
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      
+      toast.error(error.message || "Erro ao fazer logout");
+    }
   };
 
   const isAdmin = !!profile?.is_admin;

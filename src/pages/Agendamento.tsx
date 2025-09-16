@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { ArrowLeft, Clock, MapPin } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { servicesApi, appointmentsApi } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import Header from '@/components/Header';
@@ -51,13 +51,7 @@ const Agendamento = () => {
 
   const fetchService = async () => {
     try {
-      const { data, error } = await supabase
-        .from('services')
-        .select('*')
-        .eq('id', serviceId)
-        .single();
-
-      if (error) throw error;
+      const data = await servicesApi.getService(serviceId);
       setService(data);
     } catch (error) {
       console.error('Erro ao buscar serviço:', error);
@@ -87,20 +81,16 @@ const Agendamento = () => {
       const [hours, minutes] = selectedTime.split(':');
       appointmentDate.setHours(parseInt(hours), parseInt(minutes));
 
-      const { error } = await supabase
-        .from('appointments')
-        .insert({
-          user_id: user?.id,
-          service_id: serviceId,
-          appointment_date: appointmentDate.toISOString(),
-          client_name: clientName,
-          client_email: clientEmail,
-          client_phone: clientPhone,
-          notes: notes,
-          status: 'pending'
-        });
-
-      if (error) throw error;
+      await appointmentsApi.createAppointment({
+        user_id: user?.id,
+        service_id: serviceId,
+        appointment_date: appointmentDate.toISOString(),
+        client_name: clientName,
+        client_email: clientEmail,
+        client_phone: clientPhone,
+        notes: notes,
+        status: 'pending'
+      });
 
       toast.success('Agendamento realizado com sucesso!');
       navigate('/');
